@@ -12,3 +12,9 @@ logs-collector:
 
 logs-generator:
 	docker logs deployments-generator-1 --follow
+
+infra-up:
+	cd infra && terraform apply -auto-approve
+
+infra-down:
+	cd infra && terraform destroy -auto-approve
