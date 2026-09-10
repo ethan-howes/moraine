@@ -1,5 +1,5 @@
 TALUS_DIR := /home/yart/Desktop/personal-projects/talus
-SERVICES := postgres ingestion hazard gateway otel-collector otel-ingestion otel-hazard otel-gateway generator
+SERVICES := postgres ingestion hazard gateway otel-collector otel-ingestion otel-hazard otel-gateway generator kafka
 
 up:
 	docker compose -f $(TALUS_DIR)/deployments/docker-compose.yml -f docker-compose.moraine.yml up -d $(SERVICES)
