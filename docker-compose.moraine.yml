@@ -1,0 +1,93 @@
+# Moraine overlay for Talus.
+#
+# From the Talus repo directory:
+# docker compose -f deployments/docker-compose.yml -f /path/to/moraine/docker-compose.moraine.yml up
+
+services:
+
+  # Add SYS_PTRACE to each Talus service
+  ingestion:
+    cap_add:
+      - SYS_PTRACE
+
+  terrain:
+    cap_add:
+      - SYS_PTRACE
+
+  hazard:
+    cap_add:
+      - SYS_PTRACE
+
+  gateway:
+    cap_add:
+      - SYS_PTRACE
+
+  otel-ingestion:
+    image: ghcr.io/open-telemetry/opentelemetry-go-instrumentation/autoinstrumentation-go:latest
+    pid: "service:ingestion"
+    privileged: true
+    environment:
+      OTEL_GO_AUTO_TARGET_EXE: /app/ingestion-service
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+      OTEL_SERVICE_NAME: talus-ingestion
+      OTEL_PROPAGATORS: tracecontext,baggage
+    depends_on:
+      - ingestion
+      - otel-collector
+
+  otel-terrain:
+    image: ghcr.io/open-telemetry/opentelemetry-go-instrumentation/autoinstrumentation-go:latest
+    pid: "service:terrain"
+    privileged: true
+    environment:
+      OTEL_GO_AUTO_TARGET_EXE: /app/terrain-service  # verify against terrain.Dockerfile
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+      OTEL_SERVICE_NAME: talus-terrain
+      OTEL_PROPAGATORS: tracecontext,baggage
+    depends_on:
+      - terrain
+      - otel-collector
+
+  otel-hazard:
+    image: ghcr.io/open-telemetry/opentelemetry-go-instrumentation/autoinstrumentation-go:latest
+    pid: "service:hazard"
+    privileged: true
+    environment:
+      OTEL_GO_AUTO_TARGET_EXE: /app/hazard-service  # verify against hazard.Dockerfile
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+      OTEL_SERVICE_NAME: talus-hazard
+      OTEL_PROPAGATORS: tracecontext,baggage
+    depends_on:
+      - hazard
+      - otel-collector
+
+  otel-gateway:
+    image: ghcr.io/open-telemetry/opentelemetry-go-instrumentation/autoinstrumentation-go:latest
+    pid: "service:gateway"
+    privileged: true
+    environment:
+      OTEL_GO_AUTO_TARGET_EXE: /app/gateway-service  # verify against gateway.Dockerfile
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+      OTEL_SERVICE_NAME: talus-gateway
+      OTEL_PROPAGATORS: tracecontext,baggage
+    depends_on:
+      - gateway
+      - otel-collector
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    command: ["--config=/etc/otel/config.yaml"]
+    volumes:
+      - ${PWD}/otel-collector-config.yaml:/etc/otel/config.yaml
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+
+  generator:
+    build:
+      context: /home/yart/Desktop/personal-projects/moraine/generator
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: otel-collector:4317
+    depends_on:
+      - otel-collector
+    restart: unless-stopped
