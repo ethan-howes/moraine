@@ -1,2 +1,5 @@
 .env
 .terraform/
+aggregator
+alert-engine
+stream-processor
