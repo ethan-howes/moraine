@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package moraine;
+
+option go_package = "github.com/ethan-howes/moraine/proto";
+
+import "proto/telemetry.proto";
+
+service AggregatorService {
+  rpc RecordMetric (TelemetryEvent) returns (RecordMetricResponse);
+}
+
+message RecordMetricResponse {
+  bool accepted = 1;
+}

@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package moraine;
+
+option go_package = "github.com/ethan-howes/moraine/proto";
+
+import "proto/telemetry.proto";
+
+service AlertEngineService {
+  rpc EvaluateEvent (TelemetryEvent) returns (EvaluateEventResponse);
+}
+
+message EvaluateEventResponse {
+  bool  alert_fired = 1;
+  string reason     = 2;
+}
