@@ -10,7 +10,7 @@ output "eks_cluster_endpoint" {
 
 output "msk_bootstrap_brokers" {
   description = "MSK bootstrap broker connection string"
-  value       = aws_msk_cluster.moraine.bootstrap_brokers
+  value       = aws_msk_cluster.moraine.bootstrap_brokers_tls
 }
 
 output "ecr_stream_processor_url" {
