@@ -1,5 +1,3 @@
-# Security group for MSK — controls what can connect to the Kafka brokers.
-# Only allows traffic from within the VPC so brokers are not publicly reachable.
 resource "aws_security_group" "msk" {
   name        = "${var.project}-msk-sg"
   description = "Security group for Moraine MSK cluster"
@@ -21,6 +19,14 @@ resource "aws_security_group" "msk" {
     cidr_blocks = [aws_vpc.moraine.cidr_block]
   }
 
+  ingress {
+    description = "Kafka public access from internet"
+    from_port   = 9098
+    to_port     = 9098
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -34,10 +40,9 @@ resource "aws_security_group" "msk" {
   }
 }
 
-# MSK configuration — sets the Kafka broker properties.
 resource "aws_msk_configuration" "moraine" {
-  name              = "${var.project}-msk-config"
-  kafka_versions    = ["3.6.0"]
+  name           = "${var.project}-msk-config"
+  kafka_versions = ["3.6.0"]
 
   server_properties = <<-EOF
     auto.create.topics.enable=false
@@ -48,16 +53,14 @@ resource "aws_msk_configuration" "moraine" {
   EOF
 }
 
-# MSK cluster — the managed Kafka service.
-# Single broker in one AZ for dev. Production would use 3 brokers across 3 AZs.
 resource "aws_msk_cluster" "moraine" {
   cluster_name           = "${var.project}-kafka"
   kafka_version          = "3.6.0"
-  number_of_broker_nodes = 1
+  number_of_broker_nodes = 2
 
   broker_node_group_info {
     instance_type  = "kafka.t3.small"
-    client_subnets = [aws_subnet.private[0].id]
+    client_subnets = aws_subnet.private[*].id
 
     storage_info {
       ebs_storage_info {
@@ -75,8 +78,8 @@ resource "aws_msk_cluster" "moraine" {
 
   encryption_info {
     encryption_in_transit {
-      client_broker = "PLAINTEXT"
-      in_cluster    = false
+      client_broker = "TLS"
+      in_cluster    = true
     }
   }
 
