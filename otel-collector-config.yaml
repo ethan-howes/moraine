@@ -11,7 +11,8 @@ exporters:
     verbosity: detailed
   kafka:
     brokers:
-      - kafka:9092
+      - b-1.morainekafka.fld35a.c5.kafka.us-east-2.amazonaws.com:9092
+      - b-2.morainekafka.fld35a.c5.kafka.us-east-2.amazonaws.com:9092
     traces:
       topic: talus.traces
       encoding: otlp_proto
