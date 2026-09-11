@@ -9,12 +9,18 @@ receivers:
 exporters:
   debug:
     verbosity: detailed
+  kafka:
+    brokers:
+      - kafka:9092
+    traces:
+      topic: talus.traces
+      encoding: otlp_proto
 
 service:
   pipelines:
     traces:
       receivers: [otlp]
-      exporters: [debug]
+      exporters: [debug, kafka]
     metrics:
       receivers: [otlp]
       exporters: [debug]
