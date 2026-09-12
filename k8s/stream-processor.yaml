@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stream-processor
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stream-processor
+  template:
+    metadata:
+      labels:
+        app: stream-processor
+    spec:
+      containers:
+        - name: stream-processor
+          image: 027958789002.dkr.ecr.us-east-2.amazonaws.com/moraine/stream-processor:latest
+          env:
+            - name: KAFKA_BROKER
+              value: "b-1.morainekafka.fld35a.c5.kafka.us-east-2.amazonaws.com:9092"
+            - name: AGGREGATOR_ADDR
+              value: "aggregator:50051"
+            - name: ALERT_ENGINE_ADDR
+              value: "alert-engine:50052"

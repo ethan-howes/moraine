@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aggregator
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aggregator
+  template:
+    metadata:
+      labels:
+        app: aggregator
+    spec:
+      containers:
+        - name: aggregator
+          image: 027958789002.dkr.ecr.us-east-2.amazonaws.com/moraine/aggregator:latest
+          env:
+            - name: AGGREGATOR_PORT
+              value: "50051"
+          ports:
+            - containerPort: 50051
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aggregator
+  namespace: default
+spec:
+  selector:
+    app: aggregator
+  ports:
+    - port: 50051
+      targetPort: 50051
